@@ -1,35 +1,39 @@
-from dataclasses import dataclass
+from sqlalchemy import create_engine
 
-from datetime import datetime
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-from typing import Optional
+DATABASE_URL = "sqlite:///./url_shortener.db"
 
-@dataclass
+engine = create_engine(
 
-class ShortUrl:
+    DATABASE_URL,
 
-    """
+    connect_args={"check_same_thread": False},
 
-    Domain model representing a shortened URL.
+)
 
-    """
+SessionLocal = sessionmaker(
 
-    id: Optional[int]
+    autocommit=False,
 
-    original_url: str
+    autoflush=False,
 
-    short_code: str
+    bind=engine,
 
-    click_count: int = 0
+)
 
-    created_at: datetime = datetime.utcnow()
+Base = declarative_base()
 
-    is_active: bool = True
+def get_db():
 
-    def record_click(self) -> None:
+    db = SessionLocal()
 
-        self.click_count += 1
+    try:
 
-    def deactivate(self) -> None:
+        yield db
 
-        self.is_active = False
+    finally:
+
+        db.close()
+
+
